@@ -16,7 +16,7 @@ fi
 
 # 下载新的脚本
 echo "下载新的设置中文显示脚本..."
-wget -qO ~/setup_chinese.sh https://raw.githubusercontent.com/qgcloud/base/refs/heads/main/setup_chinese.sh
+wget -qO ~/setup_chinese.sh https://raw.githubusercontent.com/qgcloud/base/main/setup_chinese.sh
 
 # 给予执行权限
 chmod +x ~/setup_chinese.sh
