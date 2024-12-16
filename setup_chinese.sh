@@ -22,6 +22,11 @@ apt install -y fonts-wqy-zenhei fonts-wqy-microhei
 echo "配置区域设置为中文..."
 localectl set-locale LANG=zh_CN.UTF-8
 
+# 配置终端字符集
+echo "配置终端字符集..."
+echo "export LANG=zh_CN.UTF-8" >> /etc/profile
+source /etc/profile
+
 # 清除字体缓存
 echo "清除字体缓存..."
 fc-cache -fv
