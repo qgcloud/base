@@ -22,4 +22,7 @@ localectl set-locale LANG=zh_CN.UTF-8
 echo "清除字体缓存..."
 fc-cache -fv
 
-echo "中文显示设置完成。"
+# 验证中文显示
+echo "验证中文显示..."
+echo "如果以下中文能正确显示，则设置成功："
+echo "测试中文显示"
