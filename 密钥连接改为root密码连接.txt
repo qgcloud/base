@@ -1,0 +1,19 @@
+sudo su
+
+passwd 修改密码
+
+1、vi /root/.ssh/authorized_keys
+  把ssh-rsa之前的文件都删除掉.
+
+2、vim /etc/ssh/sshd_config
+   PermitRootLogin yes  #允许root登录
+   PasswordAuthentication yes #开启密码登录
+   
+3、vi /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+   PasswordAuthentication yes
+   或者将vim /etc/ssh/sshd_config中的Include /etc/ssh/sshd_config.d/*.conf注释掉前面加#
+
+
+
+
+reboot 重启实例
