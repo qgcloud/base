@@ -32,6 +32,14 @@ localectl set-locale LANG=zh_CN.UTF-8
 echo "清除字体缓存..."
 fc-cache -fv
 
-# 重启系统以应用更改
 echo "重启系统以应用更改..."
-reboot
+read -p "选择1重启，选择2不重启，脚本运行结束: " choice
+
+if [ "$choice" = "1" ]; then
+    echo "正在重启系统..."
+    reboot
+elif [ "$choice" = "2" ]; then
+    echo "脚本运行结束，不重启系统。"
+else
+    echo "无效的输入，脚本运行结束。"
+fi
