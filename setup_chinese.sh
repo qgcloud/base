@@ -32,6 +32,31 @@ localectl set-locale LANG=zh_CN.UTF-8
 echo "清除字体缓存..."
 fc-cache -fv
 
+# 设置 LANG 环境变量为 zh_CN.UTF-8
+echo "Setting LANG to zh_CN.UTF-8..."
+
+# 检查是否已安装中文语言包
+if ! grep -q "^zh_CN.UTF-8 UTF-8" /usr/share/locale/locale.alias; then
+    echo "Installing Chinese language pack..."
+    # 根据你的 Linux 发行版，安装语言包的命令可能不同
+    # 对于基于 Debian 的系统（如 Ubuntu），使用以下命令：
+    sudo apt-get update && sudo apt-get install -y language-pack-zh-hans
+    # 对于基于 Red Hat 的系统（如 CentOS），使用以下命令：
+    # sudo yum install -y glibc-langpack-zh
+fi
+
+# 生成中文语言环境
+sudo localedef -i zh_CN -f UTF-8 zh_CN.UTF-8
+
+# 将 LANG 设置添加到 /etc/locale.conf
+echo "LANG=zh_CN.UTF-8" | sudo tee /etc/locale.conf > /dev/null
+
+# 应用语言环境设置
+sudo systemctl restart systemd-logind.service
+
+# 输出设置结果
+echo "已经改为中文"
+
 echo "重启系统以应用更改..."
 read -p "选择1重启，选择2不重启，脚本运行结束: " choice
 
