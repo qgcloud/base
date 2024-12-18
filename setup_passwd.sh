@@ -23,10 +23,21 @@ if [ -z "$choice" ] || [ "$choice" = "1" ]; then
 fi
 
 case $choice in
-    1)
+     1)
         # 选项 1：使用默认密码
         new_password='qgcloude@'
-      
+        echo "使用默认密码: $new_password"
+
+        # 使用 expect 设置密码
+        expect -c "
+        set timeout -1
+        spawn passwd root
+        expect \"Enter new UNIX password:\"
+        send -- \"$new_password\r\"
+        expect \"Retype new UNIX password:\"
+        send -- \"$new_password\r\"
+        expect eof
+        "
         if [ $? -eq 0 ]; then
             echo "root 密码设置成功。"
         else
@@ -57,7 +68,7 @@ case $choice in
         done
         ;;
 
-    3)
+     3)
         # 选项 3：生成随机密码并保存到 /root/password.txt
         new_password=$(openssl rand -base64 12 | tr -d /=+ | fold -w 8 | head -n 1 | sed 's/\(.\{7\}\).*/\1@/')
         echo "生成的密码: $new_password"
@@ -65,9 +76,20 @@ case $choice in
         # 保存密码到 /root/password.txt
         echo "$new_password" > /root/password.txt
         if [ $? -eq 0 ]; then
-            echo "root 密码设置成功。"
+            echo "密码已保存到 /root/password.txt。"
+
+            # 使用 expect 设置密码
+            expect -c "
+            set timeout -1
+            spawn passwd root
+            expect \"Enter new UNIX password:\"
+            send -- \"$new_password\r\"
+            expect \"Retype new UNIX password:\"
+            send -- \"$new_password\r\"
+            expect eof
+            "
             if [ $? -eq 0 ]; then
-                echo "密码已保存到 /root/password.txt。"
+                echo "root 密码设置成功。"
             else
                 echo "设置密码时出错。"
                 exit 1
