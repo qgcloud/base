@@ -56,14 +56,6 @@ else
     exit 1
 fi
 
-# 注释掉Include指令
-sed -i 's/^#*Include /etc/ssh/sshd_config.d/\*.conf/#&/' /etc/ssh/sshd_config
-if [ $? -ne 0 ]; then
-    echo "注释掉Include指令失败" 1>&2
-    # 恢复原始sshd_config文件
-    cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
-    exit 1
-fi
 
 # 重启SSH服务
 systemctl restart sshd
