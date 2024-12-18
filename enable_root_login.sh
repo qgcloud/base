@@ -78,5 +78,8 @@ else
 fi
 
 
-echo "SSH配置已更新，允许root用户登录。"
+# 设置root密码
+echo "设置root密码（不安全，通常不建议在脚本中设置密码）"
+passwd root
 
+echo "SSH配置已更新，允许root用户登录。"
