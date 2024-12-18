@@ -25,7 +25,7 @@ fi
 case $choice in
      1)
         # 选项 1：使用默认密码
-        new_password="qgcloude@"
+        new_password="qgcloude@12"
         echo "使用默认密码: $new_password"
 
         # 使用 expect 设置密码
