@@ -86,6 +86,12 @@ echo "3. 生成随机密码并保存到 /root/password.txt"
 
 read -p "请输入选项 (1/2/3): " choice
 
+# 如果没有选择任何选项，默认使用选项 1
+if [ -z "$choice" ]; then
+    choice=1
+    echo "未选择任何选项，将使用默认密码。"
+fi
+
 case $choice in
     1)
         # 选项 1：使用默认密码
@@ -180,5 +186,4 @@ case $choice in
         exit 1
         ;;
 esac
-
 echo "SSH配置已更新，允许root用户登录。"
