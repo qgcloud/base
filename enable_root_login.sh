@@ -7,7 +7,11 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # 备份原始sshd_config文件
+cp /root/.ssh/authorized_keys /root/.ssh/authorized_keys.bak
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+cp /etc/ssh/sshd_config.d/60-cloudimg-settings.conf /etc/ssh/sshd_config.d/60-cloudimg-settings.conf.bak
+
+
 if [ $? -ne 0 ]; then
     echo "备份原始sshd_config文件失败" 1>&2
     exit 1
