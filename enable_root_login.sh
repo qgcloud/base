@@ -20,10 +20,10 @@ update_ssh_config() {
     sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
     # 注释掉Include指令
-    sed -i 's/^Include /etc/ssh/sshd_config.d/\*.conf/#&/' /etc/ssh/sshd_config
+    sed -i 's/^#*Include /etc/ssh/sshd_config.d/\*.conf/#&/' /etc/ssh/sshd_config
 
     # 编辑60-cloudimg-settings.conf文件
-    sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+    sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
 
     # 重启SSH服务
     systemctl restart sshd
