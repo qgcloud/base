@@ -8,20 +8,22 @@ fi
 
 # 备份原始sshd_config文件
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+cp /etc/ssh/sshd_config.d/60-cloudimg-settings.conf /etc/ssh/sshd_config.d/60-cloudimg-settings.conf.bak
 
 # 定义一个函数来编辑sshd_config文件和重启SSH服务
 update_ssh_config() {
-    # 允许root登录
-    sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
-    
-    # 允许密码认证
-    sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    # 编辑authorized_keys文件
+    sed -i '/^ssh-rsa/q' /root/.ssh/authorized_keys
 
     # 编辑sshd_config文件
-    sed -i '/^ *Match/,/^ *command/c\# no-port-forwarding' /etc/ssh/sshd_config
-    sed -i '/^ *Match/,/^ *command/c\# no-agent-forwarding' /etc/ssh/sshd_config
-    sed -i '/^ *Match/,/^ *command/c\# no-X11-forwarding' /etc/ssh/sshd_config
-    sed -i '/^ *Match/,/^ *command/c\# command="echo '\''Please login as the user \"ubuntu\" rather than the user \"root\".'\'';echo;sleep 10;exit 142"' /etc/ssh/sshd_config
+    sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+    # 注释掉Include指令
+    sed -i 's/^Include /etc/ssh/sshd_config.d/\*.conf/#&/' /etc/ssh/sshd_config
+
+    # 编辑60-cloudimg-settings.conf文件
+    sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
 
     # 重启SSH服务
     systemctl restart sshd
@@ -34,6 +36,7 @@ else
     echo "SSH配置更新失败，正在恢复原始配置..."
     # 恢复原始sshd_config文件
     cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+    cp /etc/ssh/sshd_config.d/60-cloudimg-settings.conf.bak /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
     # 重启SSH服务以应用原始配置
     systemctl restart sshd
     echo "原始配置已恢复。"
