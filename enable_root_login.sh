@@ -24,13 +24,13 @@ if [ -f /root/.ssh/authorized_keys ]; then
     if [ $? -ne 0 ]; then
         echo "编辑authorized_keys文件失败" 1>&2
         # 恢复原始sshd_config文件
-        cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+        cp /root/.ssh/authorized_keys.bak /root/.ssh/authorized_keys
         exit 1
     fi
 else
     echo "/root/.ssh/authorized_keys 文件不存在" 1>&2
     # 恢复原始sshd_config文件
-    cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+    cp /root/.ssh/authorized_keys.bak /root/.ssh/authorized_keys
     exit 1
 fi
 
