@@ -87,7 +87,7 @@ echo "3. 生成随机密码并保存到 /root/password.txt"
 read -p "请输入选项 (1/2/3): " choice
 
 # 如果没有选择任何选项，默认使用选项 1
-if [ -z "$choice" ]; then
+if [ -z "$choice" ] || [ "$choice" = "1" ]; then
     choice=1
     echo "未选择任何选项，将使用默认密码。"
 fi
@@ -98,16 +98,7 @@ case $choice in
         new_password='qgcloude@'
         echo "使用默认密码: $new_password"
 
-        # 使用 expect 设置密码
-        expect -c "
-        set timeout -1
-        spawn passwd root
-        expect \"Enter new UNIX password:\"
-        send -- \"$new_password\r\"
-        expect \"Retype new UNIX password:\"
-        send -- \"$new_password\r\"
-        expect eof
-        "
+      
         if [ $? -eq 0 ]; then
             echo "root 密码设置成功。"
         else
@@ -126,17 +117,6 @@ case $choice in
 
             if [ "$new_password" = "$confirm_password" ]; then
                 echo "使用用户指定的密码: $new_password"
-
-                # 使用 expect 设置密码
-                expect -c "
-                set timeout -1
-                spawn passwd root
-                expect \"Enter new UNIX password:\"
-                send -- \"$new_password\r\"
-                expect \"Retype new UNIX password:\"
-                send -- \"$new_password\r\"
-                expect eof
-                "
                 if [ $? -eq 0 ]; then
                     echo "root 密码设置成功。"
                     break
@@ -186,4 +166,6 @@ case $choice in
         exit 1
         ;;
 esac
+
+
 echo "SSH配置已更新，允许root用户登录。"
