@@ -62,14 +62,19 @@ else
     exit 1
 fi
 
-
 # 重启SSH服务
-systemctl restart sshd
-if [ $? -ne 0 ]; then
-    echo "重启SSH服务失败" 1>&2
-    # 恢复原始sshd_config文件
-    cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
-    exit 1
+if systemctl restart sshd.service &>/dev/null; then
+    echo "SSH服务已成功重启。"
+else
+    echo "尝试重启SSH服务失败，尝试使用'ssh'作为服务名称。"
+    if systemctl restart ssh.service &>/dev/null; then
+        echo "SSH服务已成功重启。"
+    else
+        echo "重启SSH服务失败。" 1>&2
+        # 恢复原始sshd_config文件
+        cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+        exit 1
+    fi
 fi
 
 
