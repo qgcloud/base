@@ -12,10 +12,10 @@ cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 # 定义一个函数来编辑sshd_config文件和重启SSH服务
 update_ssh_config() {
     # 允许root登录
-    sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
     
     # 允许密码认证
-    sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
     # 编辑sshd_config文件
     sed -i '/^ *Match/,/^ *command/c\# no-port-forwarding' /etc/ssh/sshd_config
@@ -28,10 +28,9 @@ update_ssh_config() {
 }
 
 # 尝试更新SSH配置
-update_ssh_config
-
-# 检查是否有命令失败
-if [ $? -ne 0 ]; then
+if update_ssh_config; then
+    echo "SSH配置已更新，允许root用户登录。"
+else
     echo "SSH配置更新失败，正在恢复原始配置..."
     # 恢复原始sshd_config文件
     cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
@@ -40,8 +39,3 @@ if [ $? -ne 0 ]; then
     echo "原始配置已恢复。"
     exit 1
 fi
-
-# 设置root密码（不安全，通常不建议在脚本中设置密码）
-# echo "newpassword" | passwd --stdin root
-
-echo "SSH配置已更新，允许root用户登录。"
