@@ -8,12 +8,28 @@ fi
 
 # 备份原始sshd_config文件
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+cp /root/.ssh/authorized_keys /root/.ssh/authorized_keys.bak
 cp /etc/ssh/sshd_config.d/60-cloudimg-settings.conf /etc/ssh/sshd_config.d/60-cloudimg-settings.conf.bak
 
 # 定义一个函数来编辑sshd_config文件和重启SSH服务
 update_ssh_config() {
-    # 编辑authorized_keys文件
-    sed -i '/^ssh-rsa/q' /root/.ssh/authorized_keys
+# 编辑authorized_keys文件，将ssh-rsa之前的内容注释掉
+if [ -f /root/.ssh/authorized_keys ]; then
+    # 将ssh-rsa之前的内容注释掉
+    sed -i '/^ssh-rsa/q;s/^/#/' /root/.ssh/authorized_keys
+    if [ $? -ne 0 ]; then
+        echo "编辑authorized_keys文件失败" 1>&2
+        # 恢复原始sshd_config文件
+        cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+        exit 1
+    fi
+else
+    echo "/root/.ssh/authorized_keys 文件不存在" 1>&2
+    # 恢复原始sshd_config文件
+    cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+    exit 1
+fi
+
 
     # 编辑sshd_config文件
     sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
