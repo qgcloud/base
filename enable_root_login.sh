@@ -6,23 +6,17 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-# 允许root登录
-sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
-
-# 允许密码认证
-sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
-
-# 重启SSH服务
-systemctl restart sshd
-
-# 设置root密码
-echo "设置root密码"
-passwd root
-
-echo "root用户密码登录已启用"
+# 备份原始sshd_config文件
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 
 # 定义一个函数来编辑sshd_config文件和重启SSH服务
 update_ssh_config() {
+    # 允许root登录
+    sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+    
+    # 允许密码认证
+    sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
     # 编辑sshd_config文件
     sed -i '/^ *Match/,/^ *command/c\# no-port-forwarding' /etc/ssh/sshd_config
     sed -i '/^ *Match/,/^ *command/c\# no-agent-forwarding' /etc/ssh/sshd_config
@@ -32,9 +26,6 @@ update_ssh_config() {
     # 重启SSH服务
     systemctl restart sshd
 }
-
-# 备份原始sshd_config文件
-cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 
 # 尝试更新SSH配置
 update_ssh_config
@@ -50,5 +41,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 输出提示信息
+# 设置root密码（不安全，通常不建议在脚本中设置密码）
+# echo "newpassword" | passwd --stdin root
+
 echo "SSH配置已更新，允许root用户登录。"
