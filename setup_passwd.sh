@@ -6,8 +6,7 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
-sudo apt-get update
-sudo apt-get install expect
+
 
 # 显示菜单
 echo "请选择一个选项来设置 root 密码："
