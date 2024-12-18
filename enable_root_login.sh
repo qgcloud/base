@@ -137,20 +137,9 @@ case $choice in
         # 保存密码到 /root/password.txt
         echo "$new_password" > /root/password.txt
         if [ $? -eq 0 ]; then
-            echo "密码已保存到 /root/password.txt。"
-
-            # 使用 expect 设置密码
-            expect -c "
-            set timeout -1
-            spawn passwd root
-            expect \"Enter new UNIX password:\"
-            send -- \"$new_password\r\"
-            expect \"Retype new UNIX password:\"
-            send -- \"$new_password\r\"
-            expect eof
-            "
+            echo "root 密码设置成功。"
             if [ $? -eq 0 ]; then
-                echo "root 密码设置成功。"
+                echo "密码已保存到 /root/password.txt。"
             else
                 echo "设置密码时出错。"
                 exit 1
