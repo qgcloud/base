@@ -6,14 +6,16 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-# 备份原始sshd_config文件
+# 备份原始/root/.ssh/authorized_keys文件
 cp /root/.ssh/authorized_keys /root/.ssh/authorized_keys.bak
+# 备份原始sshd_config文件
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+# 备份原始/etc/ssh/sshd_config.d/60-cloudimg-settings.conf文件
 cp /etc/ssh/sshd_config.d/60-cloudimg-settings.conf /etc/ssh/sshd_config.d/60-cloudimg-settings.conf.bak
 
 
 if [ $? -ne 0 ]; then
-    echo "备份原始sshd_config文件失败" 1>&2
+    echo "备份原始文件失败" 1>&2
     exit 1
 fi
 
@@ -23,7 +25,7 @@ if [ -f /root/.ssh/authorized_keys ]; then
     sed -i '/^ssh-rsa/q;s/^/#/' /root/.ssh/authorized_keys
     if [ $? -ne 0 ]; then
         echo "编辑authorized_keys文件失败" 1>&2
-        # 恢复原始sshd_config文件
+        # 恢复原始/root/.ssh/authorized_keys文件
         cp /root/.ssh/authorized_keys.bak /root/.ssh/authorized_keys
         exit 1
     fi
@@ -70,4 +72,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+
 echo "SSH配置已更新，允许root用户登录。"
+
