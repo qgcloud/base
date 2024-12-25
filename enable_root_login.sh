@@ -1,7 +1,5 @@
 #!/bin/bash
 
-sudo -i
-
 
 # 检查是否为root用户
 if [ "$(id -u)" != "0" ]; then
