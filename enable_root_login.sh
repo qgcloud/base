@@ -12,7 +12,7 @@ cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 cp /etc/ssh/sshd_config.d/60-cloudimg-settings.conf /etc/ssh/sshd_config.d/60-cloudimg-settings.conf.bak
 
 # 编辑authorized_keys文件，在第一个ssh-rsa之前插入换行符，并注释掉之前的所有行
-if ! sed -i '/^ssh-rsa/i \\\n' /root/.ssh/authorized_keys; then
+if ! sed -i 's/ssh-rsa/\n&/g' /root/.ssh/authorized_keys; then
     echo "在第一个ssh-rsa之前插入换行符失败" 1>&2
     restore_backup
     exit 1
