@@ -6,15 +6,10 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-# 备份原始文件
-cp /root/.ssh/authorized_keys /root/.ssh/authorized_keys.bak
-cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
-if [ -f /etc/ssh/sshd_config.d/60-cloudimg-settings.conf ]; then
-    cp /etc/ssh/sshd_config.d/60-cloudimg-settings.conf /etc/ssh/sshd_config.d/60-cloudimg-settings.conf.bak
-fi
+
 
 # 删除authorized_keys中ssh-rsa之前的行
-sed -i '/^ssh-rsa/q;d' /root/.ssh/authorized_keys
+sed -i '/ssh-rsa/s/.*ssh-rsa/ssh-rsa/' /root/.ssh/authorized_keys
 
 # 编辑sshd_config文件
 sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
