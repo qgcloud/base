@@ -28,8 +28,33 @@ else
     sed -i '/Include \/etc\/ssh\/sshd_config.d\/\*.conf/s/^/#/' /etc/ssh/sshd_config
 fi
 
-# 重启SSH服务
-systemctl restart sshd.service
 
-# 提示用户重启实例
-echo "SSH配置已更新，允许root用户登录并开启密码登录。请手动重启实例以使配置生效。"
+# 重启SSH服务
+if systemctl restart sshd.service &>/dev/null; then
+    echo "SSH服务已成功重启。"
+else
+    echo "尝试重启SSH服务失败，尝试使用'ssh'作为服务名称。"
+    if systemctl restart ssh.service &>/dev/null; then
+        echo "SSH服务已成功重启。"
+    else
+        echo "重启SSH服务失败。" 1>&2
+        # 恢复原始sshd_config文件
+        cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+        exit 1
+    fi
+fi
+
+
+# 设置root密码
+while true; do
+    echo "设置root密码（不安全，通常不建议在脚本中设置密码）"
+    passwd root
+    if [ $? -eq 0 ]; then
+        echo "root密码设置成功。"
+        break
+    else
+        echo "密码输入错误，重新设置..."
+    fi
+done
+
+echo "SSH配置已更新，允许root用户登录。"
