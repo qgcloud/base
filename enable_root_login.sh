@@ -1,64 +1,42 @@
 #!/bin/bash
 
+sudo -i
+
+
 # 检查是否为root用户
 if [ "$(id -u)" != "0" ]; then
    echo "该脚本必须以root权限运行" 1>&2
    exit 1
 fi
 
-# 备份原始/root/.ssh/authorized_keys文件
+# 备份原始文件
 cp /root/.ssh/authorized_keys /root/.ssh/authorized_keys.bak
-# 备份原始sshd_config文件
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
-# 备份原始/etc/ssh/sshd_config.d/60-cloudimg-settings.conf文件
 cp /etc/ssh/sshd_config.d/60-cloudimg-settings.conf /etc/ssh/sshd_config.d/60-cloudimg-settings.conf.bak
 
-
-if [ $? -ne 0 ]; then
-    echo "备份原始文件失败" 1>&2
-    exit 1
-fi
-
-# 编辑authorized_keys文件，将ssh-rsa之前的内容注释掉
-if [ -f /root/.ssh/authorized_keys ]; then
-    # 将ssh-rsa之前的内容注释掉
-    sed -i '/^ssh-rsa/i \\\n' /root/.ssh/authorized_keys && sed -i '/^ssh-rsa/q;s/^/#/' /root/.ssh/authorized_keys
-    if [ $? -ne 0 ]; then
-        echo "编辑authorized_keys文件失败" 1>&2
-        # 恢复原始/root/.ssh/authorized_keys文件
-        cp /root/.ssh/authorized_keys.bak /root/.ssh/authorized_keys
-        exit 1
-    fi
-else
-    echo "/root/.ssh/authorized_keys 文件不存在" 1>&2
-    # 恢复原始sshd_config文件
-    cp /root/.ssh/authorized_keys.bak /root/.ssh/authorized_keys
+# 编辑authorized_keys文件，将ssh-rsa之前的字符全部删掉
+if ! sed -i '/^ssh-rsa/i \\\n' /root/.ssh/authorized_keys && sed -i '/^ssh-rsa/q;s/^/#/' /root/.ssh/authorized_keys; then
+    echo "编辑/root/.ssh/authorized_keys文件失败" 1>&2
+    restore_backup
     exit 1
 fi
 
 # 编辑sshd_config文件
-sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
-sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
-if [ $? -ne 0 ]; then
-    echo "编辑sshd_config文件失败" 1>&2
-    # 恢复原始sshd_config文件
-    cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+if ! sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config; then
+    echo "编辑/etc/ssh/sshd_config文件失败，替换PermitRootLogin配置" 1>&2
+    restore_backup
+    exit 1
+fi
+if ! sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config; then
+    echo "编辑/etc/ssh/sshd_config文件失败，替换PasswordAuthentication配置" 1>&2
+    restore_backup
     exit 1
 fi
 
-# 编辑sshd_config.d/60-cloudimg-settings.conf文件
-if [ -f /etc/ssh/sshd_config.d/60-cloudimg-settings.conf ]; then
-    sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
-    if [ $? -ne 0 ]; then
-        echo "编辑60-cloudimg-settings.conf文件失败" 1>&2
-        # 恢复原始sshd_config文件
-        cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
-        exit 1
-    fi
-else
-    echo "/etc/ssh/sshd_config.d/60-cloudimg-settings.conf 文件不存在" 1>&2
-    # 恢复原始sshd_config文件
-    cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+# 编辑60-cloudimg-settings.conf文件
+if ! sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/60-cloudimg-settings.conf; then
+    echo "编辑/etc/ssh/sshd_config.d/60-cloudimg-settings.conf文件失败" 1>&2
+    restore_backup
     exit 1
 fi
 
@@ -71,115 +49,18 @@ else
         echo "SSH服务已成功重启。"
     else
         echo "重启SSH服务失败。" 1>&2
-        # 恢复原始sshd_config文件
-        cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+        # 恢复原始文件
+        restore_backup
         exit 1
     fi
 fi
 
+echo "SSH配置已更新。"
 
-# 设置root密码
-while true; do
-    echo "设置root密码（不安全，通常不建议在脚本中设置密码）"
-    passwd root
-    if [ $? -eq 0 ]; then
-        echo "root密码设置成功。"
-        break
-    else
-        echo "密码输入错误，重新设置..."
-    fi
-done
-# 显示菜单
-echo "请选择一个选项来设置 root 密码："
-echo "1. 使用默认密码 'qgcloude@'"
-echo "2. 自主设置密码"
-echo "3. 生成随机密码并保存到 /root/password.txt"
-read -p "请输入选项 (1/2/3): " choice
-case $choice in
-    1)
-        # 选项 1：使用默认密码
-        new_password='qgcloude@'
-        echo "使用默认密码: $new_password"
-        # 使用 expect 设置密码
-        expect -c "
-        set timeout -1
-        spawn passwd root
-        expect \"Enter new UNIX password:\"
-        send -- \"$new_password\r\"
-        expect \"Retype new UNIX password:\"
-        send -- \"$new_password\r\"
-        expect eof
-        "
-        if [ $? -eq 0 ]; then
-            echo "root 密码设置成功。"
-        else
-            echo "设置密码时出错。"
-            exit 1
-        fi
-        ;;
-    2)
-        # 选项 2：自主设置密码
-        while true; do
-            read -s -p "请输入新的 root 密码: " new_password
-            echo
-            read -s -p "请再次输入新的 root 密码以确认: " confirm_password
-            echo
-            if [ "$new_password" = "$confirm_password" ]; then
-                echo "使用用户指定的密码: $new_password"
-                # 使用 expect 设置密码
-                expect -c "
-                set timeout -1
-                spawn passwd root
-                expect \"Enter new UNIX password:\"
-                send -- \"$new_password\r\"
-                expect \"Retype new UNIX password:\"
-                send -- \"$new_password\r\"
-                expect eof
-                "
-                if [ $? -eq 0 ]; then
-                    echo "root 密码设置成功。"
-                    break
-                else
-                    echo "设置密码时出错。请重新尝试。"
-                fi
-            else
-                echo "两次输入的密码不一致。请重新输入。"
-            fi
-        done
-        ;;
-    3)
-        # 选项 3：生成随机密码并保存到 /root/password.txt
-        new_password=$(openssl rand -base64 12 | tr -d /=+ | fold -w 8 | head -n 1 | sed 's/\(.\{7\}\).*/\1@/')
-        echo "生成的密码: $new_password"
-        # 保存密码到 /root/password.txt
-        echo "$new_password" > /root/password.txt
-        if [ $? -eq 0 ]; then
-            echo "密码已保存到 /root/password.txt。"
-            # 使用 expect 设置密码
-            expect -c "
-            set timeout -1
-            spawn passwd root
-            expect \"Enter new UNIX password:\"
-            send -- \"$new_password\r\"
-            expect \"Retype new UNIX password:\"
-            send -- \"$new_password\r\"
-            expect eof
-            "
-            if [ $? -eq 0 ]; then
-                echo "root 密码设置成功。"
-            else
-                echo "设置密码时出错。"
-                exit 1
-            fi
-        else
-            echo "无法将密码保存到 /root/password.txt。请检查权限。"
-            exit 1
-        fi
-        ;;
-    *)
-        echo "无效的选项。请重新运行脚本并选择 1、2 或 3。"
-        exit 1
-        ;;
-esac
-
-echo "SSH配置已更新，允许root用户登录。"
+# 定义一个函数来恢复备份文件
+restore_backup() {
+    cp /root/.ssh/authorized_keys.bak /root/.ssh/authorized_keys
+    cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+    cp /etc/ssh/sshd_config.d/60-cloudimg-settings.conf.bak /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+    echo "已还原所有原始文件。"
+}
