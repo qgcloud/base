@@ -29,6 +29,18 @@ else
 fi
 
 
+# 设置root密码
+while true; do
+    echo "设置root密码（不安全，通常不建议在脚本中设置密码）"
+    passwd root
+    if [ $? -eq 0 ]; then
+        echo "root密码设置成功。"
+        break
+    else
+        echo "密码输入错误，重新设置..."
+    fi
+done
+
 # 重启SSH服务
 if systemctl restart sshd.service &>/dev/null; then
     echo "SSH服务已成功重启。"
@@ -45,16 +57,6 @@ else
 fi
 
 
-# 设置root密码
-while true; do
-    echo "设置root密码（不安全，通常不建议在脚本中设置密码）"
-    passwd root
-    if [ $? -eq 0 ]; then
-        echo "root密码设置成功。"
-        break
-    else
-        echo "密码输入错误，重新设置..."
-    fi
-done
+
 
 echo "SSH配置已更新，允许root用户登录。"
