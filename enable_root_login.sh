@@ -24,12 +24,21 @@ if ! sed -i '/^ssh-rsa/q;s/^/#/' /root/.ssh/authorized_keys; then
     exit 1
 fi
 
-# 编辑sshd_config文件，添加PermitRootLogin yes和PasswordAuthentication yes
-if ! grep -qE '^(#)?PermitRootLogin ' /etc/ssh/sshd_config; then
-    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
-fi
-if ! grep -qE '^(#)?PasswordAuthentication ' /etc/ssh/sshd_config; then
-    echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
+
+# 编辑sshd_config文件，在文件末尾添加PermitRootLogin yes和PasswordAuthentication yes
+{
+    echo "PermitRootLogin yes"
+    echo "PasswordAuthentication yes"
+} >> /etc/ssh/sshd_config
+
+# 检查添加操作是否成功
+if [ $? -eq 0 ]; then
+    echo "/etc/ssh/sshd_config配置已成功更新。"
+else
+    echo "更新/etc/ssh/sshd_config配置失败。" 1>&2
+    # 恢复原始sshd_config文件
+    cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+    exit 1
 fi
 
 # 编辑60-cloudimg-settings.conf文件，将PasswordAuthentication no替换为PasswordAuthentication yes
