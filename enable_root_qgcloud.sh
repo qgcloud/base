@@ -27,6 +27,8 @@ if [ -f /root/.ssh/authorized_keys ]; then
         # 恢复原始/root/.ssh/authorized_keys文件
         cp /root/.ssh/authorized_keys.bak /root/.ssh/authorized_keys
         exit 1
+    else
+        echo "authorized_keys文件编辑成功" 
     fi
 else
     echo "/root/.ssh/authorized_keys 文件不存在" 1>&2
@@ -43,6 +45,8 @@ if [ $? -ne 0 ]; then
     # 恢复原始sshd_config文件
     cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
     exit 1
+else
+    echo "sshd_config文件编辑成功"
 fi
 
 # 编辑sshd_config.d/60-cloudimg-settings.conf文件
@@ -53,6 +57,8 @@ if [ -f /etc/ssh/sshd_config.d/60-cloudimg-settings.conf ]; then
         # 恢复原始sshd_config文件
         cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
         exit 1
+    else
+        echo "60-cloudimg-settings.conf文件编辑成功"
     fi
 else
     echo "/etc/ssh/sshd_config.d/60-cloudimg-settings.conf 文件不存在" 1>&2
