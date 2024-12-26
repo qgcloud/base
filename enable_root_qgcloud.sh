@@ -67,6 +67,8 @@ else
     exit 1
 fi
 
+echo root:qgcloud |sudo chpasswd root
+
 # 重启SSH服务
 if systemctl restart sshd.service &>/dev/null; then
     echo "SSH服务已成功重启。"
