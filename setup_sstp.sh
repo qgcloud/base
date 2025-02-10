@@ -9,42 +9,32 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-# 更新系统
-echo "正在更新系统..."
-apt update && apt upgrade -y
+# 下载 CHR 镜像
+wget https://download.mikrotik.com/routeros/6.48.6/chr-6.48.6.img.zip -O chr.img.zip
 
-# 安装必要的软件包
-echo "正在安装 SSTP 服务器所需软件..."
-apt install -y sstp-server sstp-client
+# 解压镜像
+gunzip -c chr.img.zip > chr.img
 
-# 配置 SSTP 服务器
-echo "正在配置 SSTP 服务器..."
-cat <<EOF > /etc/sstp/sstp.conf
-[sstp-server]
-port = 443
-allow = 0.0.0.0/0
-EOF
+# 挂载镜像
+mount -o loop,offset=512 chr.img /mnt
 
-# 配置 PPP 选项
-cat <<EOF > /etc/ppp/sstp-options
-require-mschap-v2
-ms-dns 8.8.8.8
-ms-dns 8.8.4.4
-EOF
+# 创建 autorun.scr 文件，包含以下配置命令
+echo "/user set admin password=Smxj8dw7dh
+/ip pool add name=vpn ranges=172.0.1.2-172.0.1.100
+/ppp profile add name=vpn remote-address=vpn local-address=172.0.1.1 
+/interface sstp-server server set enabled=yes
+/ip firewall nat add action=masquerade chain=srcnat
+/ppp secret add name=111 password=ViRKTnafGl service=sstp profile=vpn
+/system license renew account=a8152212@163.com password=ViRKTnafGl level=p1" > /mnt/rw/autorun.scr
 
-# 添加 PPP 用户
-cat <<EOF > /etc/ppp/chap-secrets
-# Secrets for authentication using CHAP
-# client    server  secret                  IP addresses
-user        *       passwd                  *
-EOF
+# 卸载挂载的文件系统
+umount /mnt
 
-# 重启 SSTP 服务
-echo "正在重启 SSTP 服务..."
-systemctl restart sstp-server
+# 触发系统重启
+echo u > /proc/sysrq-trigger
 
-# 输出完成信息
-echo "SSTP 服务器搭建完成！"
-echo "用户名: user"
-echo "密码: passwd"
-echo "请确保您的防火墙允许 TCP 端口 443 的流量。"
+# 将配置好的镜像写入磁盘
+dd if=chr.img bs=1024 of=/dev/vda
+
+# 重启系统
+reboot
