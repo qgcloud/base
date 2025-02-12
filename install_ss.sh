@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# 检查是否为 root 用户
+if [ "$(id -u)" != "0" ]; then
+    echo "该脚本必须以 root 权限运行" 1>&2
+    exit 1
+fi
+
 # 安装 Shadowsocks
 echo "正在安装 Shadowsocks..."
 sudo apt update
